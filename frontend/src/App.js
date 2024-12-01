@@ -17,10 +17,12 @@ function App() {
   const handleUpload = async () => {
     const formData = new FormData();
     formData.append('file', file);
-    console.log("Uploading file:", file);  //debug kar
+    console.log("Uploading file:", file); // Debug log
     try {
-      const response = await axios.post('http://127.0.0.1:5000/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      console.log(response.data);  //debug kar
+      const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      console.log(response.data); // Debug log
       alert('File uploaded successfully');
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -34,7 +36,7 @@ function App() {
         filename: file.name,
         conversion_type: conversionType,
       });
-      console.log(response.data); //debug kar
+      console.log(response.data); // Debug log
       setConvertedFiles(response.data.converted_files);
     } catch (error) {
       console.error('Error converting file:', error);
@@ -69,13 +71,9 @@ function App() {
             <h2>Converted Files:</h2>
             {convertedFiles.map((file, index) => (
               <div key={index}>
-                {file.type === 'text' ? (
-                  <textarea value={file.content} readOnly />
-                ) : (
-                  <button onClick={() => handleDownload(file)}>
-                    Download {file.type}
-                  </button>
-                )}
+                <button onClick={() => handleDownload(file)}>
+                  Download {file.type} - {file.filename}
+                </button>
               </div>
             ))}
           </div>
