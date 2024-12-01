@@ -1,0 +1,7 @@
+# Ignore Converted files
+converted/images/*
+converted/text/*
+converted/word/*
+
+# Ignore Upload files
+uploads/*
