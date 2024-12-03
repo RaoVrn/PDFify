@@ -2,6 +2,7 @@
 converted/images/*
 converted/text/*
 converted/word/*
+converted/excel/*
 
 # Ignore Upload files
 uploads/*

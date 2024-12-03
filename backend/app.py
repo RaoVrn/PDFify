@@ -4,18 +4,23 @@ from werkzeug.utils import secure_filename
 from PyPDF2 import PdfReader
 import fitz
 from docx import Document
+from pdf2docx import Converter
 from PIL import Image
+import tabula
+import camelot
+import pandas as pd
 from flask_cors import CORS
+import io
 
 app = Flask(__name__)
 CORS = (app)
 
 @app.after_request
 def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-  return response
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 # Set absolute paths for uploads and converted folders
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,12 +31,14 @@ converted_folder = os.path.join(base_dir, 'converted')
 text_dir = os.path.join(converted_folder, 'text')
 word_dir = os.path.join(converted_folder, 'word')
 img_dir = os.path.join(converted_folder, 'images')
+excel_dir = os.path.join(converted_folder, 'excel')  # New folder for Excel
 
 # Ensure the directories exist
 os.makedirs(upload_folder, exist_ok=True)
 os.makedirs(text_dir, exist_ok=True)
 os.makedirs(word_dir, exist_ok=True)
 os.makedirs(img_dir, exist_ok=True)
+os.makedirs(excel_dir, exist_ok=True)  # Ensure excel directory exists
 
 app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['CONVERTED_FOLDER'] = converted_folder
@@ -62,18 +69,19 @@ def pdf_to_text(pdf_path):
         f.write(text)
     return text_file
 
-
-# PDF to Word conversion
+# PDF to Word conversion with formatting preservation
 def pdf_to_word(pdf_path):
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"File {pdf_path} does not exist.")
-    doc = Document()
-    reader = PdfReader(pdf_path)
-    for page in reader.pages:
-        doc.add_paragraph(page.extract_text())
+    
+    # Convert PDF to Word using pdf2docx
     word_file = os.path.join(word_dir, f'{os.path.splitext(os.path.basename(pdf_path))[0]}.docx')
-    doc.save(word_file)
+    cv = Converter(pdf_path)
+    cv.convert(word_file, start=0, end=None)  # Convert the entire PDF
+    cv.close()  # Close the converter after conversion
+
     return word_file
+
 
 # PDF to Image conversion
 
@@ -87,6 +95,63 @@ def pdf_to_image(pdf_path):
         pix.save(img_path)
         img_paths.append(img_path)
     return img_paths
+
+def pdf_to_excel(pdf_path):
+    """
+    Convert a PDF file to Excel format using Camelot and Tabula as a fallback.
+    """
+    try:
+        import camelot  # Ensure Camelot is installed
+    except ImportError:
+        raise ImportError("Camelot library is not installed. Install it using 'pip install camelot-py[cv]'.")
+
+    excel_files = []
+    try:
+        # Primary attempt: Camelot
+        tables = camelot.read_pdf(pdf_path, pages='all', strip_text='\n', split_text=True)
+
+        if not tables or len(tables) == 0:
+            raise ValueError("No tables found in the PDF using Camelot.")
+
+        for idx, table in enumerate(tables):
+            # Convert table to a pandas DataFrame
+            df = table.df
+
+            # Save each table to an Excel file
+            excel_filename = f"{os.path.splitext(os.path.basename(pdf_path))[0]}_camelot_table_{idx + 1}.xlsx"
+            excel_file_path = os.path.join(excel_dir, excel_filename)
+            df.to_excel(excel_file_path, index=False, header=True)
+            excel_files.append(excel_filename)
+
+        return excel_files
+
+    except Exception as e:
+        print(f"Camelot failed: {str(e)}")
+        print("Attempting fallback with Tabula...")
+
+        # Fallback: Tabula
+        try:
+            import tabula
+        except ImportError:
+            raise ImportError("Tabula library is not installed. Install it using 'pip install tabula-py'.")
+
+        try:
+            tables = tabula.read_pdf(pdf_path, pages='all', multiple_tables=True)
+
+            if not tables or len(tables) == 0:
+                raise ValueError("No tables found using Tabula either.")
+
+            for idx, table in enumerate(tables):
+                # Save Tabula DataFrame to an Excel file
+                excel_filename = f"{os.path.splitext(os.path.basename(pdf_path))[0]}_tabula_table_{idx + 1}.xlsx"
+                excel_file_path = os.path.join(excel_dir, excel_filename)
+                table.to_excel(excel_file_path, index=False, header=True)
+                excel_files.append(excel_filename)
+
+        except Exception as fallback_error:
+            raise ValueError(f"Both Camelot and Tabula failed: {str(fallback_error)}")
+
+    return excel_files
 
 
 @app.route('/upload', methods=['POST'])
@@ -133,6 +198,10 @@ def convert_file():
             img_paths = pdf_to_image(file_path)
             converted_files.extend([{'type': 'image', 'filename': os.path.basename(img)} for img in img_paths])
 
+        elif conversion_type == 'excel':
+            excel_files = pdf_to_excel(file_path)
+            converted_files.extend([{'type': 'excel', 'filename': excel_file} for excel_file in excel_files])
+
         else:
             return jsonify({'message': 'Invalid conversion type'}), 400
 
@@ -148,6 +217,7 @@ def download_file(conversion_type, filename):
         'text': text_dir,
         'word': word_dir,
         'image': img_dir,
+        'excel': excel_dir,
     }
 
     if conversion_type not in folder_map:
