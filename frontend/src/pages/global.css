@@ -58,8 +58,6 @@ body {
   margin: 0 auto;
 }
 
-
-
 /* Section Styles */
 .section {
   margin-bottom: 20px;
@@ -94,7 +92,8 @@ body {
 
 /* Buttons */
 .upload-btn,
-.convert-btn {
+.convert-btn,
+.preview-btn {
   width: 45%;
   padding: 14px;
   font-size: 16px;
@@ -110,19 +109,6 @@ body {
   margin: 0 auto 25px auto;
 }
 
-.download-btn {
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 100;
-  text-transform: uppercase;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-bottom: 25px;
-}
-
 .upload-btn {
   background-color: #2E8B57;
 }
@@ -131,15 +117,20 @@ body {
   background-color: #4682B4;
 }
 
+.preview-btn {
+  background-color: #d38d0b;
+}
 
 .upload-btn:hover,
 .convert-btn:hover,
+.preview-btn:hover,
 .download-btn:hover {
   opacity: 0.9;
 }
 
 .upload-btn:active,
 .convert-btn:active,
+.preview-btn:active,
 .download-btn:active {
   opacity: 0.8;
 }
@@ -198,7 +189,6 @@ body {
   background-color: #6C3483;
 }
 
-
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .content {
@@ -211,6 +201,7 @@ body {
 
   .upload-btn,
   .convert-btn,
+  .preview-btn,
   .download-btn {
     font-size: 14px;
     padding: 10px;

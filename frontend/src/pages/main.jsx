@@ -7,6 +7,7 @@ function Main() {
   const [conversionType, setConversionType] = useState('');
   const [convertedFiles, setConvertedFiles] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -19,6 +20,7 @@ function Main() {
       }
       setErrorMessage('');
       setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile)); // Set the preview URL
     }
   };
 
@@ -98,6 +100,17 @@ function Main() {
             Upload File
           </button>
         </div>
+
+        {file && (
+          <div className="section">
+            <button
+              onClick={() => window.open(previewUrl, '_blank')}
+              className="preview-btn"
+            >
+              Preview File
+            </button>
+          </div>
+        )}
 
         <div className="section">
           <label className="label">Select Conversion Type</label>
