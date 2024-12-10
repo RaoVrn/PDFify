@@ -1,16 +1,20 @@
 import os
-from flask import Flask, request, jsonify, send_from_directory
-from werkzeug.utils import secure_filename
-from PyPDF2 import PdfReader
 import fitz
-from docx import Document
-from pdf2docx import Converter
-from PIL import Image
 import tabula
 import camelot
 import pandas as pd
-from flask_cors import CORS
 import io
+from flask import Flask, request, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
+from PyPDF2 import PdfReader
+from docx import Document
+from pdf2docx import Converter
+from PIL import Image
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from io import StringIO
+from bs4 import BeautifulSoup
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS = (app)
@@ -31,14 +35,16 @@ converted_folder = os.path.join(base_dir, 'converted')
 text_dir = os.path.join(converted_folder, 'text')
 word_dir = os.path.join(converted_folder, 'word')
 img_dir = os.path.join(converted_folder, 'images')
-excel_dir = os.path.join(converted_folder, 'excel')  # New folder for Excel
+excel_dir = os.path.join(converted_folder, 'excel')
+ppt_dir = os.path.join(converted_folder, 'ppt')
 
 # Ensure the directories exist
 os.makedirs(upload_folder, exist_ok=True)
 os.makedirs(text_dir, exist_ok=True)
 os.makedirs(word_dir, exist_ok=True)
 os.makedirs(img_dir, exist_ok=True)
-os.makedirs(excel_dir, exist_ok=True)  # Ensure excel directory exists
+os.makedirs(excel_dir, exist_ok=True)
+os.makedirs(ppt_dir, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['CONVERTED_FOLDER'] = converted_folder
@@ -153,6 +159,48 @@ def pdf_to_excel(pdf_path):
 
     return excel_files
 
+# PDF to PPT conversion
+def pdf_to_ppt(pdf_path):
+    ppt_file = os.path.join(ppt_dir, f"{os.path.splitext(os.path.basename(pdf_path))[0]}.pptx")
+    presentation = Presentation()
+    reader = PdfReader(pdf_path)
+
+    for page_num, page in enumerate(reader.pages):
+        slide = presentation.slides.add_slide(presentation.slide_layouts[5])  # Blank slide layout
+
+        # Extract text from the PDF page
+        page_text = page.extract_text() or "No extractable content found"
+
+        # Use OCR if text extraction fails
+        if not page_text.strip():
+            print(f"Falling back to OCR for page {page_num}")
+            doc = fitz.open(pdf_path)
+            pix = doc[page_num].get_pixmap(dpi=300)
+            img = Image.open(io.BytesIO(pix.tobytes()))
+            page_text = image_to_string(img)
+
+        # Add text to the slide
+        textbox = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(6.5))
+        frame = textbox.text_frame
+        frame.word_wrap = True
+        for paragraph_text in page_text.split('\n'):
+            paragraph = frame.add_paragraph()
+            paragraph.text = paragraph_text
+            paragraph.font.size = Pt(14)
+            paragraph.font.name = "Arial"
+
+        # Add page image as a background or additional content
+        doc = fitz.open(pdf_path)
+        pix = doc[page_num].get_pixmap(dpi=150)
+        img_path = os.path.join(img_dir, f"{os.path.splitext(os.path.basename(pdf_path))[0]}_{page_num + 1}.png")
+        pix.save(img_path)
+        
+        left = Inches(0.5)
+        top = Inches(6)
+        slide.shapes.add_picture(img_path, left, top, width=Inches(9))
+
+    presentation.save(ppt_file)
+    return ppt_file
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -201,6 +249,10 @@ def convert_file():
         elif conversion_type == 'excel':
             excel_files = pdf_to_excel(file_path)
             converted_files.extend([{'type': 'excel', 'filename': excel_file} for excel_file in excel_files])
+        
+        elif conversion_type == 'ppt':
+            ppt_file = pdf_to_ppt(file_path)
+            converted_files.append({'type': 'ppt', 'filename': os.path.basename(ppt_file)})
 
         else:
             return jsonify({'message': 'Invalid conversion type'}), 400
@@ -218,6 +270,7 @@ def download_file(conversion_type, filename):
         'word': word_dir,
         'image': img_dir,
         'excel': excel_dir,
+        'ppt': ppt_dir,
     }
 
     if conversion_type not in folder_map:
