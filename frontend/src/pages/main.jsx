@@ -123,6 +123,7 @@ function Main() {
             <option value="word">Word</option>
             <option value="image">Image</option>
             <option value="excel">Excel</option>
+            <option value="ppt">PowerPoint</option>
           </select>
           <button
             onClick={handleConvert}

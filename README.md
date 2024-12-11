@@ -1,6 +1,6 @@
 # PDFify: Your PDF Conversion Partner
 
-PDFify is a comprehensive PDF conversion tool that provides seamless functionality to convert PDFs into various formats, including text, images, Word documents, and Excel sheets. Built with Python and Flask, it simplifies handling and processing PDFs in a user-friendly web interface.
+PDFify is a comprehensive PDF conversion tool that provides seamless functionality to convert PDFs into various formats, including text, images, Word documents, Excel sheets, and PowerPoint presentations. Built with Python and Flask, it simplifies handling and processing PDFs in a user-friendly web interface.
 
 ---
 
@@ -9,6 +9,7 @@ PDFify is a comprehensive PDF conversion tool that provides seamless functionali
 - **PDF to Image**: Convert each page of a PDF into high-quality images.
 - **PDF to Word**: Generate editable Word documents (.docx) from PDFs.
 - **PDF to Excel**: Extract tables from PDFs into structured Excel spreadsheets.
+- **PDF to PowerPoint**: Convert PDFs into editable PowerPoint presentations (.pptx).
 - **API-First Design**: RESTful APIs for integrating PDF conversion into your applications.
 
 ---
@@ -26,6 +27,7 @@ PDFify is a comprehensive PDF conversion tool that provides seamless functionali
 - **PIL (Pillow)**: Process and manipulate images.
 - **Tabula**: Extract tabular data from PDFs.
 - **Pandas**: Process and structure tabular data extracted from PDFs.
+- **python-pptx**: Generate PowerPoint presentations from PDF content.
 
 ---
 
@@ -83,6 +85,12 @@ PDFify is a comprehensive PDF conversion tool that provides seamless functionali
    - **Input**: PDF file
    - **Output**: Downloadable Excel spreadsheet (.xlsx).
 
+5. **PDF to PowerPoint**
+   - **Endpoint**: `/convert-powerpoint`
+   - **Method**: `POST`
+   - **Input**: PDF file
+   - **Output**: Downloadable PowerPoint presentation (.pptx).
+
 ---
 
 ## Usage
@@ -102,6 +110,10 @@ PDFify is a comprehensive PDF conversion tool that provides seamless functionali
 ### Convert PDF to Excel:
 1. Send a PDF with tabular data to the `/convert-excel` endpoint.
 2. Receive the structured Excel sheet for data analysis.
+
+### Convert PDF to PowerPoint:
+1. Upload your PDF to the `/convert-powerpoint` endpoint.
+2. Download the .pptx file for presentation.
 
 ---
 
@@ -131,4 +143,4 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 ## Acknowledgements
-- Thanks to the maintainers of Flask, PyPDF2, PyMuPDF, python-docx, Pillow, Tabula, and Pandas for their robust libraries.
+- Thanks to the maintainers of Flask, PyPDF2, PyMuPDF, python-docx, Pillow, Tabula, Pandas, and python-pptx for their robust libraries.
