@@ -22,12 +22,80 @@ PDFify is a comprehensive PDF conversion tool that provides seamless functionali
 
 ### Libraries Used
 - **PyPDF2**: Extract text and metadata from PDF files.
-- **fitz (PyMuPDF)**: Handle PDF pages and perform rendering for image conversion.
-- **docx (python-docx)**: Create Word documents from PDF content.
-- **PIL (Pillow)**: Process and manipulate images.
+- **PyMuPDF (fitz)**: Handle PDF pages and perform rendering for image conversion.
+- **python-docx**: Create Word documents from PDF content.
+- **Pillow**: Process and manipulate images.
 - **Tabula**: Extract tabular data from PDFs.
 - **Pandas**: Process and structure tabular data extracted from PDFs.
 - **python-pptx**: Generate PowerPoint presentations from PDF content.
+- **beautifulsoup4**: Web scraping to process additional content from PDFs (optional).
+- **camelot-py**: Table extraction from PDFs.
+- **pdf2docx**: Convert PDFs to Word documents.
+
+---
+
+## Flowchart
+
+Below is the flowchart for the **PDFify** PDF conversion process:
+
+```mermaid
+
+graph TD
+    A[Start] --> B[Upload File]
+    B --> C[Validate Format]
+    C --> D{Supported?}
+    D -->|Yes| E[Extract Content]
+    D -->|No| F[Error: Unsupported Format]
+    E --> G[Convert to PDF]
+    G --> H{Success?}
+    H -->|Yes| I[Preview PDF]
+    H -->|No| J[Error: Conversion Failed]
+    I --> K[Download PDF]
+    K --> L[Save PDF]
+    L --> M[Send Confirmation]
+    M --> N[End]
+    F --> N
+    J --> N
+```
+
+---
+
+## Directory Structure
+
+```
+PDFify
+├── frontend
+│   ├── node_modules/
+│   ├── public/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── main.jsx
+│   │   │   ├── global.css
+│   ├── .gitignore
+│   ├── package.json
+│   ├── package-lock.json
+├── backend
+│   ├── uploads/
+│   │   └── <pdf-files>  # All PDF files to be processed
+│   ├── output/
+│   │   ├── <converted-pdf-files>  # Converted PDFs
+│   ├── converted/
+│   │   ├── excel/
+│   │   │   └── <converted-excel-files>
+│   │   ├── images/
+│   │   │   └── <converted-images>
+│   │   ├── ppt/
+│   │   │   └── <converted-ppt-files>
+│   │   ├── text/
+│   │   │   └── <converted-text-files>
+│   │   ├── word/
+│   │   │   └── <converted-word-files>
+│   ├── .env
+│   ├── server.js
+│   ├── package.json
+├── Readme.md
+├── requirements.txt
+```
 
 ---
 
@@ -35,8 +103,8 @@ PDFify is a comprehensive PDF conversion tool that provides seamless functionali
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/RaoVrn/pdfify.git
-   cd pdfify
+   git clone https://github.com/RaoVrn/PDFify.git
+   cd PDFify
    ```
 
 2. Set up a virtual environment (optional but recommended):
