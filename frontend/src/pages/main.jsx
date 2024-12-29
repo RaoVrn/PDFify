@@ -79,6 +79,7 @@ function Main() {
   return (
     <div className="container">
       <div className="header">
+        <img src="" alt="" />
         <h1>PDFify</h1>
         <h5>Your PDF Conversion Partner</h5>
       </div>
